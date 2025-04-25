@@ -2,11 +2,56 @@
 
 /**
  * Gestionnaire de contact - Cela centralise toutes les actions sur les contacts
+ * Version avec persistance JSON
  */
 class ContactManager
 {
     /**
-     * Ajoute un nouveau contact dans la session
+     * @var string Chemin vers le fichier JSON
+     */
+    private $jsonFilePath;
+
+    /**
+     * @var array Tableau des contacts
+     */
+    private $contacts = [];
+
+    /**
+     * Constructeur
+     * 
+     * @param string $jsonFilePath Chemin vers le fichier JSON
+     */
+    public function __construct($jsonFilePath)
+    {
+        $this->jsonFilePath = $jsonFilePath;
+        $this->loadContacts();
+    }
+
+    /**
+     * Charge les contacts depuis le fichier JSON
+     */
+    private function loadContacts()
+    {
+        if (file_exists($this->jsonFilePath)) {
+            $jsonContent = file_get_contents($this->jsonFilePath);
+            $this->contacts = json_decode($jsonContent, true) ?: [];
+        } else {
+            // Créer le fichier avec un tableau vide s'il n'existe pas
+            $this->saveContacts();
+        }
+    }
+
+    /**
+     * Enregistre les contacts dans le fichier JSON
+     */
+    private function saveContacts()
+    {
+        $jsonContent = json_encode($this->contacts, JSON_PRETTY_PRINT);
+        file_put_contents($this->jsonFilePath, $jsonContent);
+    }
+
+    /**
+     * Ajoute un nouveau contact
      * 
      * @param string $name Le nom du contact
      * @param string $email L'email du contact
@@ -23,10 +68,10 @@ class ContactManager
             return false;
         }
 
-        //Génération d'un ID unique
+        // Génération d'un ID unique
         $id = uniqid();
 
-        //Création du contact
+        // Création du contact
         $contact = [
             'id' => $id,
             'name' => $name,
@@ -34,8 +79,11 @@ class ContactManager
             'favorite' => $favorite,
         ];
 
-        //Ajout du contact à la session 
-        $_SESSION['contacts'][$id] = $contact;
+        // Ajout du contact au tableau
+        $this->contacts[$id] = $contact;
+
+        // Enregistrement des changements
+        $this->saveContacts();
 
         return true;
     }
@@ -47,22 +95,19 @@ class ContactManager
      */
     public function getAllContacts()
     {
-        if (!isset($_SESSION['contacts'])) {
-            return [];
-        }
-        return $_SESSION['contacts'];
+        return $this->contacts;
     }
 
     /**
      * Récupère un contact par son ID
      * 
-     * @param string $id L'ID du contact
+     * @param string $id l'ID du contact
      * @return array|null Les données du contact ou null si non trouvé
      */
     public function getContactById($id)
     {
-        if (isset($_SESSION['contacts'][$id])) {
-            return $_SESSION['contacts'][$id];
+        if (isset($this->contacts[$id])) {
+            return $this->contacts[$id];
         }
         return null;
     }
@@ -78,12 +123,13 @@ class ContactManager
      */
     public function updateContact($id, $name, $email, $favorite = null)
     {
-        //Vérification si le contact existe
-        if (!isset($_SESSION['contacts'][$id])) {
+        //Vérification si contact existe
+        if (!isset($this->contacts[$id])) {
             return false;
         }
 
         //Vérification si les données sont valides
+
         if (empty($name) || empty($email)) {
             return false;
         }
@@ -92,14 +138,17 @@ class ContactManager
             return false;
         }
 
-        //Mettre à jour le contact
-        $_SESSION['contacts'][$id]['name'] = $name;
-        $_SESSION['contacts'][$id]['email'] = $email;
+        // Mettre à jour le contact
+        $this->contacts[$id]['name'] = $name;
+        $this->contacts[$id]['email'] = $email;
 
-        //Mettre à jour favorite que si il est fourni
+        // Mettre à jour favorite que si il est fourni
         if ($favorite !== null) {
-            $_SESSION['contacts'][$id]['favorite'] = $favorite;
+            $this->contacts[$id]['favorite'] = $favorite;
         }
+
+        // Enregistrement des changements
+        $this->saveContacts();
 
         return true;
     }
@@ -112,13 +161,14 @@ class ContactManager
      */
     public function deleteContact($id)
     {
-        if (isset($_SESSION['contacts'][$id])) {
-            unset($_SESSION['contacts'][$id]);
+        if (isset($this->contacts[$id])) {
+            unset($this->contacts[$id]);
+
+            // Enregistrement des changements
+            $this->saveContacts();
+
             return true;
         }
         return false;
     }
 }
-
-//Création d'une instance stocker dans la variable globale $contactManager accessible depuis n'importe quelle page
-$contactManager = new ContactManager();
