@@ -1,0 +1,18 @@
+{
+    "name": "diginamic/poo",
+    "description": "Tests de l'autoload fourni par composer",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Diginamic\\Poo\\": "src/",
+            "Entities\\": "entities/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Lilian",
+            "email": "bouvetlilianpro@gmail.com"
+        }
+    ],
+    "require": {}
+}

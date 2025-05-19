@@ -1,0 +1,18 @@
+{
+    "name": "diginamic/lilian",
+    "description": "TP ExoBook",
+    "autoload": {
+        "psr-4": {
+            "Diginamic\\Lilian\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Lilian",
+            "email": "bouvetlilianpro@gmail.com"
+        }
+    ],
+    "require": {
+        "guzzlehttp/psr7": "^2.7"
+    }
+}
